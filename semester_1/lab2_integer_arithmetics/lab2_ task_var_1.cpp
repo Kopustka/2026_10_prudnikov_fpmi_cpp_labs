@@ -3,10 +3,10 @@
 
 int main()
 {
-    int n, k;
-    int buffer;
+    long long n, k;
+    long long buffer;
     int i = 1;
-    int rank = 1;
+    long long rank = 1;
 
     std::cout << "Enter natural number: ";
 
