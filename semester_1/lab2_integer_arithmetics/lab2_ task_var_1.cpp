@@ -1,22 +1,14 @@
 ﻿
 #include <iostream>
 
-int main()
-{
-    long long n, k;
-    long long buffer;
+
+
+long DeleteDoubleNums(long long n) {
+
+    long long k = n;
+    int buffer = 9;
     int i = 1;
     long long rank = 1;
-
-    std::cout << "Enter natural number: ";
-
-    if (!(std::cin >> n) || n <= 0) {
-        std::cout << "You must enter a positive number!\n";
-        std::exit(-1);
-    }
-
-    k = n;
-    buffer = 9;
 
     // цикл для нахождения мин числа 
     for (;n != 0;) {
@@ -37,12 +29,25 @@ int main()
         i--;
     }
 
+    return n;
+}
 
-    std::cout << "Its your answer:" << n;
+
+int main()
+{
+    long long n;
+
+    std::cout << "Enter natural number: ";
+
+    if (!(std::cin >> n) || n <= 0) {
+        std::cout << "You must enter a positive number!\n";
+        std::exit(-1);
+    }
+
+    std::cout << "Its your answer:" << DeleteDoubleNums(n);
 
     return 0;
 }
-
 
 
 
