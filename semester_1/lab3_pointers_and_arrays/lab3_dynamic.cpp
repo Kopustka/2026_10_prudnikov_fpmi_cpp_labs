@@ -3,9 +3,21 @@
 #include <cassert>
 #include <cmath>
 
+//ввод н
+int EnterN() {
+	int n = 0;
+	std::cout << "Enter count of elements(count must be greater than 2): ";
+
+	if (!(std::cin >> n) || n <= 2) {
+		std::cout << "You must enter a positive number or n > 2!\n";
+		std::exit(-1);
+	}
+
+	return n;
+}
 
 void PrintArray(int* grades, int n) {
-	std::cout << "Array";
+	std::cout << "Array: ";
 
 	for (int i = 0; i < n; i++) {
 		std::cout << grades[i] << " ";
@@ -15,6 +27,8 @@ void PrintArray(int* grades, int n) {
 
 // создает массив
 void MakeArray(int* grades, int n) {
+
+	std::cout << "Enter marks : ";
 
 	for (int i = 0; i < n; i++) {
 		std::cin >> grades[i];
@@ -91,21 +105,16 @@ void CalculateArithmeticMean(int* grades, int n) {
 int main()
 {
 	int n;   //колличество оценок
-	std::cout << "Enter count of elements(count must be greater than 2): ";
 
-	if (!(std::cin >> n) || n <= 2) {
-		std::cout << "You must enter a positive number or n < 2!\n";
-		std::exit(-1);
-	}
+	n = EnterN(); //ввод н
+
 	int* grades = new int[n] {}; //массив оценок
 
-	std::cout << "Enter marks : ";
 
-
-	MakeArray(grades, n);
-	n = DeleteMin(grades, n);
-	n = DeleteMax(grades, n);
-	CalculateArithmeticMean(grades, n);
+	MakeArray(grades, n);  // создание массива
+	n = DeleteMin(grades, n); // удаение минимального
+	n = DeleteMax(grades, n); // удаление максимального 
+	CalculateArithmeticMean(grades, n); // сред арифм. и подсчет резов
 
 
 
