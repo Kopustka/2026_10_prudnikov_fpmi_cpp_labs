@@ -10,6 +10,35 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <chrono>
+#include <ctime>
+#include <locale>
+
+std::time_t Now() {
+    auto now = std::chrono::system_clock::now();
+    return std::chrono::system_clock::to_time_t(now);
+}
+
+auto FormatTime(time_t time, bool is_utc_format) {
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+    return is_utc_format
+        ? std::put_time(std::gmtime(&time), "%x %X")
+        : std::put_time(std::localtime(&time), "%x %X");
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+}
+
 
 const std::string SIGNS = ",.!?;:";
 
@@ -94,54 +123,98 @@ bool IsEmptyFile(std::ifstream& fin) {
 }
 
 std::string ReadLineFile(const std::string& filename) {
-    std::ifstream fin{filename};
+    std::ifstream fin{ filename };
     std::string line;
-    
+
     if (!fin.is_open()) {
         throw std::string("Error: could not open file \"" + filename + "\"!!!");
     }
 
     if (IsEmptyFile(fin)) { // EOF
-        throw std::string ("Error: file \"" + filename + "\" is empty");
+        throw std::string("Error: file \"" + filename + "\" is empty");
     }
 
     std::getline(fin, line);
     std::cout << "String: " << line << std::endl;
 
-    return line;    
+    return line;
 
 }
 
 void WriteLineFile(const std::string& filename, const std::string& line) {
     std::ofstream fout{ filename };
-    
+
     if (!fout.is_open()) {
-       throw std::string("Error: could not open file \"" + filename + "\"!!!");
+        throw std::string("Error: could not open file \"" + filename + "\"!!!");
     }
 
     fout << line;
 
-    fout.close();   
+    fout.close();
 }
 
-
-
 void Log(std::ofstream& fout, const std::string& msg) {
-    fout << " [INFO] " << msg << "\n";
+    fout << FormatTime(Now(), false) << "|" << " [INFO] " << msg << "\n";
 }
 
 void LogError(std::ofstream& fout, const std::string& msg) {
-    fout << " [ERROR] " << msg << "\n";
+    fout << FormatTime(Now(), false) << "|" << " [ERROR] " << msg << "\n";
 }
+
+void ProccesFile(const std::string& filename_input, const std::string& filename_output, std::ofstream& logs_fout) {
+    std::ifstream fin{ filename_input };
+    std::ofstream fout{ filename_output };
+
+
+
+    if (!fin.is_open()) {
+        throw std::string("Error: could not open file \"" + filename_input + "\"!!!");
+    }
+
+    if (IsEmptyFile(fin)) { // EOF
+        throw std::string("Error: file \"" + filename_output + "\" is empty");
+    }
+
+    std::string line;
+
+    Log(logs_fout, ("Opening file, and reading \"" + filename_input + "\""));
+    while (std::getline(fin, line)) {
+
+        if (line.find_first_not_of(" ") == std::string::npos) {
+            Log(logs_fout, ("empty line skipped\n"));
+            continue;
+        }
+
+        Log(logs_fout, ("The LINE was succesefully read, and text was received"));
+
+        std::vector<int> indexes = {};
+
+        Log(logs_fout, ("Process of rearranginng words"));
+        std::vector<std::string> sentence = parseSentence(line, indexes);
+
+        std::string result = reverseWords(sentence, indexes);
+        Log(logs_fout, ("Words was rearranged succesefully\n"));
+
+        Log(logs_fout, ("Try to write down the result in \"" + filename_output + "\""));
+        fout << result << '/n';
+
+        Log(logs_fout, ("The result was succesefully writen down in \"" + filename_output + "\""));
+    }
+
+    Log(logs_fout, ("Closing file"));
+    fout.close();
+}
+
+
+
 
 
 int main() {
     const std::string input_file = "input.txt";
     const std::string output_file = "output.txt";
     const std::string logger_file = "logger.txt";
-    
+
     std::string line;
-    std::vector<int> indexes = {};
 
     std::ofstream logs_fout{ logger_file };
 
@@ -149,25 +222,17 @@ int main() {
     try {
 
         if (!logs_fout.is_open()) {
-            throw std::string("Error: could not open file \"" + logger_file +"\"!!!");
+            throw std::string("Error: could not open file \"" + logger_file + "\"!!!");
         }
+        ProccesFile(input_file, output_file, logs_fout);
 
-        Log(logs_fout, ("Opening file, and reading \"" + input_file + "\"\n"));
-        line = ReadLineFile(input_file);
-        Log(logs_fout, ("The file was succesefully read, and text was received\n"));
-        Log(logs_fout, ("Process of rearranginng words"));
-        std::vector<std::string> sentence = parseSentence(line, indexes);
-        Log(logs_fout, ("Words was rearranged succesefully\n"));
-        line = reverseWords(sentence, indexes);
-        Log(logs_fout, ("Try to write down the result in \"" + output_file + "\"\n"));
-        WriteLineFile(output_file, line);
-        std::cout << "Result has been written to " << std::quoted(output_file);
-        Log(logs_fout, ("The result was succesefully writen down in \"" + output_file + "\"\n"));
     }
     catch (const std::string& msg) {
         LogError(logs_fout, msg);
         std::cout << msg << '\n';
     }
+
+
     //catch (...) {
     //    std::cout << "Unknown error";
     //}
@@ -176,4 +241,4 @@ int main() {
 
 
     return 0;
-}   
+}
